@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: book-import
+  name: book-import
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: book-import
+    spec:
+      containers:
+      - image: quay.io/jpacker/hugo:latest
+        name: book-import
+        ports:
+        - containerPort: 1313
+          name: http-server
