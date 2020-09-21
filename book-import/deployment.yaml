@@ -6,6 +6,9 @@ metadata:
   name: book-import
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      name: book-import
   template:
     metadata:
       labels:
