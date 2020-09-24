@@ -1,0 +1,85 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policygroup-book-import
+  namespace: book-import
+  annotations:
+    policy.open-cluster-management.io/categories: PR.PT Protective Technology
+    policy.open-cluster-management.io/controls: PR.PT-3 Least Functionality
+    policy.open-cluster-management.io/standards: NIST-CSF
+spec:
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policygroup-book-import-anyuid-scc
+        spec:
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - book-import
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                allowedCapabilities: []
+                allowHostDirVolumePlugin: false
+                allowHostIPC: false
+                allowHostNetwork: false
+                allowHostPID: false
+                allowHostPorts: false
+                allowPrivilegedContainer: false
+                allowPrivilegeEscalation: true
+                apiVersion: security.openshift.io/v1
+                defaultAddCapabilities: []
+                fsGroup:
+                  type: RunAsAny
+                groups:
+                  - 'system:cluster-admins'
+                kind: SecurityContextConstraints
+                metadata:
+                  name: book-import-scc
+                  annotations:
+                    kubernetes.io/description: >-
+                      restricted denies access to all host features and requires
+                      pods to be run with a UID, and SELinux context that are
+                      allocated to the namespace.  This is the most restrictive
+                      SCC and it is used by default for authenticated users.
+                priority: 10
+                readOnlyRootFilesystem: false
+                requiredDropCapabilities:
+                  - MKNOD
+                runAsUser:
+                  type: RunAsAny
+                seLinuxContext:
+                  type: MustRunAs
+                supplementalGroups:
+                  type: RunAsAny
+                users:
+                  - 'system:serviceaccount:book-import:default'
+                volumes:
+                  - configMap
+                  - downwardAPI
+                  - emptyDir
+                  - persistentVolumeClaim
+                  - projected
+                  - secret
+          remediationAction: enforce
+          severity: high
+  remediationAction: enforce
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: book-import-scc
+  namespace: book-import
+placementRef:
+  name: book-import-placement-0
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+- name: policygroup-book-import
+  kind: Policy
+  apiGroup: policy.open-cluster-management.io
